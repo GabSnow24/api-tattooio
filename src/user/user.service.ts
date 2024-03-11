@@ -1,14 +1,50 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { passwordHasher } from 'src/utils/encrypt.utils';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) { }
   
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(data: CreateUserDto) {
+    try {
+      const { username, password, email, taxId } = data
+      const foundUser = await this.prisma.user.findFirst({
+        where: {
+          taxId,
+          username,
+          email
+        }
+      })
+
+      if (foundUser) {
+        Logger.error('User already created', '', 'UserService', true)
+        throw new ConflictException('User already created')
+      }
+
+      const { hash } = await passwordHasher(password)
+      data = { ...data, password: hash }
+
+      const user = await this.prisma.user.create({
+        data,
+        select: {
+          id: true,
+          name: true,
+          address: true,
+          email: true,
+          cellphone: true,
+          username: true,
+          role: true
+        }
+      })
+
+      return user
+    } catch (error) {
+      Logger.error(error)
+      throw new Error(error)
+    }
   }
 
   findAll() {
