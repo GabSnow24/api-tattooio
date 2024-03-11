@@ -11,7 +11,7 @@ model User {
   id        String     @id @default(uuid())
   name      String    
   taxId     String     @unique
-  cellphone String
+  cellphone String     
   username  String     @unique
   address   String
   email     String     @unique
