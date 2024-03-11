@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  cellphone String
+  username  String     @unique
+  address   String
+  email     String     @unique
+  password  String
+  schedules Schedule[]
+  role      Role       @default(CUSTOMER)
+}
+
+model Schedule {
+  id          String         @id @default(uuid())
+  time        String
+  date        DateTime
+  scheduler   User           @relation(fields: [schedulerId], references: [id])
+  schedulerId String
+  status      ScheduleStatus @default(PENDING)
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+  ARTIST
+}
+
+enum ScheduleStatus {
+  ACTIVE
+  CANCELLED
+  PENDING
+}
