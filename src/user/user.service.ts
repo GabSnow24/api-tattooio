@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,73 +11,109 @@ import { passwordHasher } from 'src/utils/encrypt.utils';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) { }
-  
+  constructor(private readonly prisma: PrismaService) {}
+
+  response = {
+    id: true,
+    name: true,
+    address: true,
+    email: true,
+    cellphone: true,
+    username: true,
+    role: true,
+  };
   async create(data: CreateUserDto) {
     try {
-      const { username, password, email, taxId } = data
+      const { username, password, email, taxId } = data;
       const foundUser = await this.prisma.user.findFirst({
         where: {
           taxId,
           username,
-          email
-        }
-      })
+          email,
+        },
+      });
 
       if (foundUser) {
-        Logger.error('User already created', '', 'UserService', true)
-        throw new ConflictException('User already created')
+        Logger.error('User already created', '', 'UserService', true);
+        throw new ConflictException('User already created');
       }
 
-      const { hash } = await passwordHasher(password)
-      data = { ...data, password: hash }
+      const { hash } = await passwordHasher(password);
+      data = { ...data, password: hash };
 
       const user = await this.prisma.user.create({
         data,
-        select: {
-          id: true,
-          name: true,
-          address: true,
-          email: true,
-          cellphone: true,
-          username: true,
-          role: true
-        }
-      })
+        select: this.response,
+      });
 
-      return user
+      return user;
     } catch (error) {
-      Logger.error(error)
-      throw new Error(error)
+      Logger.error(error);
+      throw new Error(error);
     }
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    return this.prisma.user.findMany({
+      select: this.response,
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: this.response,
+    });
+
+    if (!user) {
+      Logger.error('User not found', '', 'UserService', true);
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const userFinder = await this.prisma.user.findFirst({
+      where: {
+        id,
+      },
+      select: this.response,
+    });
+    if (!userFinder) {
+      Logger.error('User not found', '', 'UserService', true);
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.prisma.user.updateMany({
+      where: {
+        id: id,
+      },
+      data: updateUserDto,
+    });
+    return `This action updates the ${userFinder.name}`;
   }
 
   async findByUserName(username: string) {
     const foundUser = await this.prisma.user.findFirst({
       where: {
-        username
-      }
-    })
+        username,
+      },
+    });
     if (!foundUser) {
-      Logger.error('User not found', '', 'UserService', true)
-      throw new NotFoundException('User not found')
+      Logger.error('User not found', '', 'UserService', true);
+      throw new NotFoundException('User not found');
     }
-    return foundUser
+    return foundUser;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    const deleteUser = await this.prisma.user.delete({
+      where: {
+        id,
+      },
+    });
+
+    return `This action removes user ` + deleteUser.username;
   }
 }
