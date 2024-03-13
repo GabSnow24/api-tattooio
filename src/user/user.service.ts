@@ -1,14 +1,15 @@
 import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { passwordHasher } from 'src/utils/encrypt.utils';
+import { PrismaService } from '../prisma/prisma.service';
+import { passwordHasher } from '../utils/encrypt.utils';
+import { ResponseUserObject } from './dto/response-user.object';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) { }
   
-  async create(data: CreateUserDto) {
+  async create(data: CreateUserDto): Promise<ResponseUserObject>{
     try {
       const { username, password, email, taxId } = data
       const foundUser = await this.prisma.user.findFirst({
