@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ResponseUserObject } from './dto/response-user.object';
 
 @ApiTags('Users')
 @Controller('users')
@@ -15,10 +16,10 @@ export class UserController {
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'The user has been created successfully.',
-    type: CreateUserDto,
+    type: ResponseUserObject,
   })
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Body() createUserDto: CreateUserDto): Promise<ResponseUserObject|Error>{
     return this.userService.create(createUserDto);
   }
 
