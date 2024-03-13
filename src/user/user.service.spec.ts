@@ -49,7 +49,6 @@ describe('UserService', () => {
       } catch (error) {
         expect(error).toEqual(new ConflictException('User already created'));
       }
-
       expect(prisma.user.findFirst).toHaveBeenCalledWith({
         where: {
           taxId,
