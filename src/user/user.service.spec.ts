@@ -9,6 +9,7 @@ import {
   selectedResponseMock,
 } from './user.mock';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('UserService', () => {
   let service: UserService;
@@ -84,16 +85,17 @@ describe('UserService', () => {
       });
     });
 
-    it(`should find user already created exception`, async () => {
+    it(`should return user already created exception`, async () => {
+      const id = uuidv4();
       try {
         jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
-        const response = await service.findOne('23');
+        const response = await service.findOne(id);
       } catch (error) {
         expect(error).toEqual(new NotFoundException('User not found'));
       }
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: {
-          id: '23',
+          id: id,
         },
         select: prismaSelectQuery,
       });
