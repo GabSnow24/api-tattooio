@@ -5,9 +5,11 @@ import {
   createDtoMock,
   fakeUsers,
   prismaMock,
+  prismaSelectQuery,
   selectedResponseMock,
 } from './user.mock';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('UserService', () => {
   let service: UserService;
@@ -78,18 +80,23 @@ describe('UserService', () => {
         where: {
           id: fakeUsers[0].id,
         },
+        select: prismaSelectQuery,
       });
     });
 
-    it(`should return nothing when post is not found`, async () => {
-      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
-      const response = await service.findOne('23');
-      expect(response).toBe(null);
-      expect(prisma.user.findUnique).toHaveBeenCalledTimes(1);
+    it(`should return user already created exception`, async () => {
+      const id = uuidv4();
+      try {
+        jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+        const response = await service.findOne(id);
+      } catch (error) {
+        expect(error).toEqual(new NotFoundException('User not found'));
+      }
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: {
-          id: '23',
+          id: id,
         },
+        select: prismaSelectQuery,
       });
     });
   });

@@ -47,6 +47,16 @@ export const selectedResponseMock: ResponseUserObject = {
     role: 'ADMIN'
   }
 
+export const prismaSelectQuery = {
+  id: true,
+  name: true,
+  cellphone: true,
+  username: true,
+  address: true,
+  email: true,
+  role: true,
+};
+
 export const prismaMock = {
     user: {
       create: jest.fn().mockReturnValue(selectedResponseMock),
