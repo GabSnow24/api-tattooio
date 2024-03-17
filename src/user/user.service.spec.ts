@@ -91,7 +91,7 @@ describe('UserService', () => {
     it(`should return user already created exception`, async () => {
       try {
         jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
-        const response = await service.findOne(id);
+        await service.findOne(id);
       } catch (error) {
         expect(error).toEqual(new NotFoundException('User not found'));
       }
@@ -114,6 +114,45 @@ describe('UserService', () => {
         where: {
           username: fakeUsers[0].username,
         },
+      });
+    });
+
+    describe('update', () => {
+      const updateInfos = {
+        name: 'test',
+        taxId: '123456789',
+        username: 'test',
+        address: 'test',
+        cellphone: 'test',
+        email: 'test',
+      };
+      it(`should update a user`, async () => {
+        prisma.user.findUnique = jest.fn().mockResolvedValue(fakeUsers[0].id);
+        prisma.user.update = jest.fn().mockResolvedValue(fakeUsers[0]);
+        const response = await service.update(fakeUsers[0].id, updateInfos);
+        expect(response).toBe(fakeUsers[0]);
+        expect(prisma.user.update).toHaveBeenCalledTimes(1);
+        expect(prisma.user.update).toHaveBeenCalledWith({
+          where: {
+            id: fakeUsers[0].id,
+          },
+          data: updateInfos,
+          select: prismaSelectQuery,
+        });
+      });
+
+      it(`should return user not found exception`, async () => {
+        try {
+          jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+          await service.update(id, updateInfos);
+        } catch (error) {
+          expect(error).toEqual(new NotFoundException('User not found'));
+        }
+        expect(prisma.user.findUnique).toHaveBeenCalledWith({
+          where: {
+            id: id,
+          },
+        });
       });
     });
 

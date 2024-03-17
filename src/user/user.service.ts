@@ -84,13 +84,13 @@ export class UserService {
       Logger.error('User not found', '', 'UserService', true);
       throw new NotFoundException('User not found');
     }
-    await this.prisma.user.update({
+    return this.prisma.user.update({
       where: {
         id: id,
       },
       data: updateUserDto,
+      select: this.response,
     });
-    return `This action updates the ${userFinder.name}`;
   }
 
   async findByUsername(username: string) {
