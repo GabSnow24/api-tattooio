@@ -94,8 +94,8 @@ export class UserService {
     return `This action updates the ${userFinder.name}`;
   }
 
-  async findByUserName(username: string) {
-    const foundUser = await this.prisma.user.findFirst({
+  async findByUsername(username: string) {
+    const foundUser = await this.prisma.user.findUnique({
       where: {
         username,
       },

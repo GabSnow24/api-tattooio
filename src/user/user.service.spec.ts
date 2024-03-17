@@ -12,6 +12,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
 describe('UserService', () => {
+  const id = uuidv4();
   let service: UserService;
   let prisma: PrismaService;
 
@@ -86,7 +87,6 @@ describe('UserService', () => {
     });
 
     it(`should return user already created exception`, async () => {
-      const id = uuidv4();
       try {
         jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
         const response = await service.findOne(id);
@@ -98,6 +98,34 @@ describe('UserService', () => {
           id: id,
         },
         select: prismaSelectQuery,
+      });
+    });
+  });
+
+  describe('findByUsermame', () => {
+    it(`should return user by name`, async () => {
+      prisma.user.findUnique = jest.fn().mockResolvedValue(fakeUsers[0]);
+      const response = await service.findByUsername(fakeUsers[0].username);
+      expect(response).toBe(fakeUsers[0]);
+      expect(prisma.user.findUnique).toHaveBeenCalledTimes(1);
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: {
+          username: fakeUsers[0].username,
+        },
+      });
+    });
+
+    it(`should return user not found exception`, async () => {
+      try {
+        jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+        const response = await service.findByUsername(id);
+      } catch (error) {
+        expect(error).toEqual(new NotFoundException('User not found'));
+      }
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: {
+          username: id,
+        },
       });
     });
   });
