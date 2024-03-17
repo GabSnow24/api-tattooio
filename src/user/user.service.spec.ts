@@ -10,6 +10,8 @@ import {
 } from './user.mock';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { error } from 'console';
 
 describe('UserService', () => {
   const id = uuidv4();
@@ -125,6 +127,35 @@ describe('UserService', () => {
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: {
           username: id,
+        },
+      });
+    });
+  });
+
+  describe('delete', () => {
+    it(`should delete a user`, async () => {
+      prisma.user.findUnique = jest.fn().mockResolvedValue(fakeUsers[0]);
+      const response = await service.remove(fakeUsers[0].id);
+      expect(response).toBe(`This action removes user ${fakeUsers[0].id}`);
+      expect(prisma.user.delete).toHaveBeenCalledTimes(1);
+      expect(prisma.user.delete).toHaveBeenCalledWith({
+        where: {
+          id: fakeUsers[0].id,
+        },
+      });
+    });
+
+    it(`should return user not found exception`, async () => {
+      try {
+        jest.spyOn(prisma.user, 'findUnique').mockRejectedValue(new Error());
+        await service.remove(id);
+      } catch (error) {
+        expect(error).toEqual(new NotFoundException('User not found'));
+      }
+      expect(prisma.user.delete).toHaveBeenCalledTimes(1);
+      expect(prisma.user.delete).toHaveBeenCalledWith({
+        where: {
+          id: id,
         },
       });
     });
