@@ -75,27 +75,26 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const userFinder = await this.prisma.user.findFirst({
+    const userFinder = await this.prisma.user.findUnique({
       where: {
         id,
       },
-      select: this.response,
     });
     if (!userFinder) {
       Logger.error('User not found', '', 'UserService', true);
       throw new NotFoundException('User not found');
     }
-    const user = await this.prisma.user.updateMany({
+    return this.prisma.user.update({
       where: {
         id: id,
       },
       data: updateUserDto,
+      select: this.response,
     });
-    return `This action updates the ${userFinder.name}`;
   }
 
-  async findByUserName(username: string) {
-    const foundUser = await this.prisma.user.findFirst({
+  async findByUsername(username: string) {
+    const foundUser = await this.prisma.user.findUnique({
       where: {
         username,
       },
@@ -114,6 +113,6 @@ export class UserService {
       },
     });
 
-    return `This action removes user ` + deleteUser.username;
+    return `This action removes user ${id}`;
   }
 }
